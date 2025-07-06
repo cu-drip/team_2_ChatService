@@ -1,0 +1,5 @@
+<type>[optional scope]: <short summary>
+
+[#task-id] Optional body: motivation, links
+
+BREAKING CHANGE: <что сломалось>
