@@ -1,0 +1,260 @@
+openapi: 3.0.4
+info:
+    title: ChatService
+    version: 1.0.0
+    description: API для управления чатами и участниками
+
+servers:
+    -   url: http://localhost:8000
+
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+
+    schemas:
+        Chat:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                name:
+                    type: string
+                owner:
+                    type: string
+                    format: uuid
+            required: [ id, name, owner ]
+
+        CreateChatRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                users:
+                    type: array
+                    items:
+                        type: string
+                        format: uuid
+            required: [ name, users ]
+
+        UserList:
+            type: array
+            items:
+                type: string
+                format: uuid
+
+        Message:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                author:
+                    type: string
+                    format: uuid
+                content:
+                    type: string
+                created_at:
+                    type: string
+                    format: date-time
+            required: [ id, author, content, created_at ]
+
+        MessageList:
+            type: array
+            items:
+                $ref: '#/components/schemas/Message'
+
+paths:
+    /chats:
+        get:
+            summary: Список чатов
+            security:
+                -   BearerAuth: [ ]
+            responses:
+                '200':
+                    description: Список чатов
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Chat'
+
+        post:
+            summary: Создание чата
+            security:
+                -   BearerAuth: [ ]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateChatRequest'
+            responses:
+                '200':
+                    description: Успешное создание
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Chat'
+
+    /chats/{id}:
+        get:
+            summary: Получить чат по id
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '200':
+                    description: Чат
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Chat'
+
+    /chats/{id}/users:
+        get:
+            summary: Получить список участников чата
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '200':
+                    description: Список пользователей
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserList'
+
+    /chats/{id}/users/{userId}:
+        post:
+            summary: Добавить участников чата
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                -   name: userId
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '204':
+                    description: Участники добавлены
+
+        delete:
+            summary: Удалить участников чата
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                -   name: userId
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '204':
+                    description: Участники удалены
+
+    /chats/{id}/users/{userId}/mute:
+        put:
+            summary: Замутить участника
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                -   name: userId
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '204':
+                    description: Участник замучен
+
+    /chats/{id}/users/{userId}/unmute:
+        put:
+            summary: Размутить участника
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                -   name: userId
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '204':
+                    description: Участник размучен
+
+    /chats/{id}/messages:
+        get:
+            summary: Получить историю сообщений
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                -   name: limit
+                    in: query
+                    required: false
+                    schema:
+                        type: integer
+                -   name: after
+                    in: query
+                    required: false
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '200':
+                    description: Список сообщений
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageList'

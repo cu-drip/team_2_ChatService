@@ -86,23 +86,11 @@ Response:
 ```
 
 ### Добавить участников чата (owner only)
-`POST /api/chats/{id}/users` \
-Body:
-```json
-[
-    "uuid"
-]
-```
+`POST /api/chats/{id}/users/{userId}` \
 Response: 204
 
 ### Удалить участников чата  (owner only)
-`DELETE /api/chats/{id}/users` \
-Body:
-```json
-[
-    "uuid"
-]
-```
+`DELETE /api/chats/{id}/users/{userId}` \
 Response: 204
 
 ### Замутить участника чата  (owner and admin only)
