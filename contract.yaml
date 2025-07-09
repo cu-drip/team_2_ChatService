@@ -1,0 +1,334 @@
+openapi: 3.0.4
+info:
+    title: ChatService
+    version: 1.0.0
+    description: API для управления чатами и участниками
+
+servers:
+    -   url: http://localhost:8000
+
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+
+    responses:
+        BadRequestError:
+            description: Неверный запрос (400)
+        UnauthorizedError:
+            description: Неавторизован (401)
+        ForbiddenError:
+            description: Доступ запрещён (403)
+        NotFoundError:
+            description: Не найдено (404)
+        InternalError:
+            description: Внутренняя ошибка сервера (500)
+
+    schemas:
+        Chat:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                name:
+                    type: string
+                owner:
+                    type: string
+                    format: uuid
+            required: [ id, name, owner ]
+
+        CreateChatRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                users:
+                    type: array
+                    items:
+                        type: string
+                        format: uuid
+            required: [ name, users ]
+
+        UserList:
+            type: array
+            items:
+                type: string
+                format: uuid
+
+        Message:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                author:
+                    type: string
+                    format: uuid
+                content:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+            required: [ id, author, content, createdAt ]
+
+        MessageList:
+            type: array
+            items:
+                $ref: '#/components/schemas/Message'
+
+        PatchUserStatus:
+            type: object
+            properties:
+                muted:
+                    type: boolean
+            required: [ muted ]
+
+        UserBatchRequest:
+            type: object
+            properties:
+                users:
+                    type: array
+                    items:
+                        type: string
+                        format: uuid
+            required: [ users ]
+
+paths:
+    /chats:
+        get:
+            tags: [ Chat ]
+            summary: Список чатов
+            description: Получить список доступных чатов пользователя
+            security:
+                -   BearerAuth: [ ]
+            responses:
+                '200':
+                    description: Список чатов
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Chat'
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+        post:
+            tags: [ Chat ]
+            summary: Создание чата
+            description: Создать новый чат и добавить пользователей
+            security:
+                -   BearerAuth: [ ]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateChatRequest'
+            responses:
+                '201':
+                    description: Чат создан
+                    headers:
+                        Location:
+                            description: URL созданного чата
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Chat'
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+    /chats/{id}/users:
+        get:
+            tags: [ Chat ]
+            summary: Получить список участников чата
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            responses:
+                '200':
+                    description: Список пользователей
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserList'
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '404': { $ref: '#/components/responses/NotFoundError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+        post:
+            tags: [ Chat ]
+            summary: Пакетное добавление участников
+            description: Добавить сразу несколько участников в чат
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserBatchRequest'
+            responses:
+                '204':
+                    description: Участники добавлены
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '404': { $ref: '#/components/responses/NotFoundError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+    /chats/{id}/users/{userId}:
+        post:
+            tags: [ Chat ]
+            summary: Добавить одного участника
+            description: Добавить одного участника по userId
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema: { type: string, format: uuid }
+                -   name: userId
+                    in: path
+                    required: true
+                    schema: { type: string, format: uuid }
+            responses:
+                '204': { description: Участник добавлен }
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '404': { $ref: '#/components/responses/NotFoundError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+        delete:
+            tags: [ Chat ]
+            summary: Удалить участника
+            description: Удалить участника из чата
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema: { type: string, format: uuid }
+                -   name: userId
+                    in: path
+                    required: true
+                    schema: { type: string, format: uuid }
+            responses:
+                '204': { description: Участник удалён }
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '404': { $ref: '#/components/responses/NotFoundError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+        patch:
+            tags: [ Chat ]
+            summary: Изменить статус участника (mute/unmute)
+            description: Замутить или размутить участника
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema: { type: string, format: uuid }
+                -   name: userId
+                    in: path
+                    required: true
+                    schema: { type: string, format: uuid }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PatchUserStatus'
+            responses:
+                '204': { description: Статус обновлён }
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '404': { $ref: '#/components/responses/NotFoundError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+    /chats/{id}/messages:
+        get:
+            tags: [ Chat ]
+            summary: История сообщений
+            description: Получить сообщения в чате с опциональной пагинацией
+            security:
+                -   BearerAuth: [ ]
+            parameters:
+                -   name: id
+                    in: path
+                    required: true
+                    schema: { type: string, format: uuid }
+                -   name: limit
+                    in: query
+                    schema: { type: integer }
+                -   name: after
+                    in: query
+                    schema: { type: string, format: uuid }
+            responses:
+                '200':
+                    description: Список сообщений
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageList'
+                '400': { $ref: '#/components/responses/BadRequestError' }
+                '401': { $ref: '#/components/responses/UnauthorizedError' }
+                '403': { $ref: '#/components/responses/ForbiddenError' }
+                '404': { $ref: '#/components/responses/NotFoundError' }
+                '500': { $ref: '#/components/responses/InternalError' }
+
+x-websocket:
+    url: ws://localhost:8000/ws/chats/{id}
+    summary: Подключение к чату через WebSocket
+    description: |
+        Подключение по `ws://localhost:8000/ws/chats/{id}`
+        Header: `Authorization: Bearer <JWT>`
+
+        Messages Protocol:
+        ```json
+        {
+          "id": "uuid",
+          "author": "uuid",
+          "content": "string",
+          "createdAt": "timestamp"
+        }
+        ```
+
+        Sending Messages:
+        ```json
+        {
+          "content": "string"
+        }
+        ```
+
