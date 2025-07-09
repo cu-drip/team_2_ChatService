@@ -27,13 +27,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        Jwt jwt = (Jwt) session.getAttributes().get("jwt");
-        UUID chatId = getChatIdFromPath(session);
-        UUID userId = getUserIdFromJwt(jwt);
-
-        session.getAttributes().put("chatId", chatId);
-        session.getAttributes().put("userId", userId);
-
+        UUID chatId = (UUID) session.getAttributes().get("chatId");
         sessionRegistry.register(chatId, session);
     }
 
@@ -48,20 +42,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         UUID chatId = (UUID) session.getAttributes().get("chatId");
         UUID userId = (UUID) session.getAttributes().get("userId");
 
-        if (chatService.isUserMuted(chatId, userId)) return;
+        if (!chatService.isUserInChat(chatId, userId) || chatService.isUserMuted(chatId, userId)) return;
 
         IncomingMessageDto incoming = objectMapper.readValue(message.getPayload(), IncomingMessageDto.class);
         OutgoingMessageDto saved = messageService.saveMessage(chatId, userId, incoming.getContent());
         sessionRegistry.broadcast(chatId, saved);
-    }
-
-    private UUID getUserIdFromJwt(Jwt jwt) {
-        return UUID.fromString(jwt.getClaimAsString("sub"));
-    }
-
-    private UUID getChatIdFromPath(WebSocketSession session) {
-        String path = session.getUri().getPath();
-        String[] segments = path.split("/");
-        return UUID.fromString(segments[segments.length - 1]);
     }
 }

@@ -14,7 +14,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageService {
     private final MessageRepository messageRepository;
-    private final ChatRepository chatRepo;
 
     public OutgoingMessageDto saveMessage(UUID chatId, UUID authorId, String content) {
         Message message = new Message(

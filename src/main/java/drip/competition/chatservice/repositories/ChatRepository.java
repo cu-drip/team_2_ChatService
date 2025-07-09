@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ChatRepository extends JpaRepository<Chat, UUID> {
     List<Chat> getChatsByOwner(UUID owner);
+    Chat getChatById(UUID id);
 }
