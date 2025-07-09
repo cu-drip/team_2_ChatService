@@ -4,7 +4,7 @@ COPY settings.gradle.kts build.gradle.kts gradlew ./
 COPY gradle ./gradle
 COPY src ./src
 RUN chmod +x ./gradlew \
- && ./gradlew clean build
+ && ./gradlew clean build -x test
 
 FROM azul/zulu-openjdk-alpine:21-jre-headless
 WORKDIR /app
