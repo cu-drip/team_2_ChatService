@@ -1,9 +1,49 @@
+secrets:
+    jwt_secret:
+        file: ../secrets/jwt_secret.key
+
 services:
-  postgres:
-    image: 'postgres:latest'
-    environment:
-      - 'POSTGRES_DB=database'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
-    ports:
-      - '5434:5432'
+    chatdb:
+        image: postgres:16-alpine
+        container_name: chat-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: database
+            POSTGRES_USER: myuser
+            POSTGRES_PASSWORD: secret
+        ports:
+            - "5434:5432"
+        volumes:
+            - chat_data:/var/lib/postgresql/data
+        networks:
+            - chat-network
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U myuser -d database" ]
+            interval: 10s
+            retries: 5
+
+    chat-service:
+        build: .
+        container_name: chat-service
+        restart: on-failure
+        depends_on:
+            chatdb:
+                condition: service_healthy
+        environment:
+            SPRING_DATASOURCE_URL: jdbc:postgresql://chatdb:5432/database
+            SPRING_DATASOURCE_USERNAME: myuser
+            SPRING_DATASOURCE_PASSWORD: secret
+            JWT_SECRET_PATH: /run/secrets/jwt_secret
+        ports:
+            - "8000:8000"
+        networks:
+            - chat-network
+        secrets:
+            - jwt_secret
+
+volumes:
+    chat_data:
+
+networks:
+    chat-network:
+        driver: bridge

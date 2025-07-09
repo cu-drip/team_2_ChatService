@@ -127,6 +127,7 @@ gradle-app.setting
 .classpath
 
 .env
+secrets
 .idea
 HELP.md
 build/

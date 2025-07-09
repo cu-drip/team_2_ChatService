@@ -3,9 +3,9 @@ server:
 
 spring:
     datasource:
-        url: jdbc:postgresql://localhost:5432/database
-        username: myuser
-        password: secret
+        url: ${SPRING_DATASOURCE_URL}
+        username: ${SPRING_DATASOURCE_USERNAME}
+        password: ${SPRING_DATASOURCE_PASSWORD}
     jpa:
         hibernate:
             ddl-auto: update
@@ -14,5 +14,5 @@ spring:
             hibernate:
                 format_sql: true
 
-springdoc:
-    open-api: /contract.yaml
+jwt:
+    secret-file: ${JWT_SECRET_PATH}
