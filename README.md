@@ -21,6 +21,7 @@ create table chats_users
 (
     chatId UUID references chats (id),
     userId UUID,
+    muted boolean,
 
     primary key (chatId, userId)
 )
@@ -86,6 +87,18 @@ Response:
 ```
 
 ### Добавить участников чата (owner only)
+`POST /api/chats/{id}/users` \
+Body:
+```json
+{
+    "users": [
+        "uuid"
+    ]
+}
+```
+Response: 204
+
+### Добавить участников чата (owner only)
 `POST /api/chats/{id}/users/{userId}` \
 Response: 204
 
@@ -93,12 +106,14 @@ Response: 204
 `DELETE /api/chats/{id}/users/{userId}` \
 Response: 204
 
-### Замутить участника чата  (owner and admin only)
-`PUT /api/chats/{id}/users/{userId}/mute` \
-Response: 204
-
-### Размутить участника чата  (owner and admin only)
-`PUT /api/chats/{id}/users/{userId}/unmute` \
+### Замутить/Размутить участника чата  (owner and admin only)
+`PATCH /api/chats/{id}/users/{userId}` \
+Body:
+```json
+{
+  "muted": true
+}
+```
 Response: 204
 
 ### Получить историю сообщений
