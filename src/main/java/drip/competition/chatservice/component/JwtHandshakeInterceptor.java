@@ -30,16 +30,20 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token;
+        try {
+            String query = request.getURI().getQuery();
+            int tokenIdx = query.indexOf("token=");
+            token = query.substring(tokenIdx + 7);
+            int endIdx = token.indexOf("&");
+            token = token.substring(0, endIdx);
+        } catch (Exception e) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return false;
         }
 
         UUID userId;
         try {
-            String token = authHeader.substring(7);
             Jwt jwt = jwtTokenProvider.jwtDecoder.decode(token);
             attributes.put("jwt", jwt);
 
