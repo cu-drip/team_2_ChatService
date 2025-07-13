@@ -35,7 +35,7 @@ services:
             SPRING_DATASOURCE_PASSWORD: secret
             JWT_SECRET_PATH: /run/secrets/jwt_secret
         ports:
-            - "8000:8000"
+            - "8000:8080"
         networks:
             - chat-network
         secrets:
