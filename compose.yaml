@@ -16,15 +16,15 @@ services:
         volumes:
             - chat_data:/var/lib/postgresql/data
         networks:
-            - chat-network
+            - microservices-net
         healthcheck:
             test: [ "CMD-SHELL", "pg_isready -U myuser -d database" ]
             interval: 10s
             retries: 5
 
-    chat-service:
+    chatservice:
         build: .
-        container_name: chat-service
+        container_name: chatservice
         restart: on-failure
         depends_on:
             chatdb:
@@ -37,7 +37,7 @@ services:
         ports:
             - "8000:8080"
         networks:
-            - chat-network
+            - microservices-net
         secrets:
             - jwt_secret
 
@@ -45,5 +45,5 @@ volumes:
     chat_data:
 
 networks:
-    chat-network:
-        driver: bridge
+  microservices-net:
+    external: true
