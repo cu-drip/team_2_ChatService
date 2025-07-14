@@ -33,11 +33,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         String token;
         try {
             String query = request.getURI().getQuery();
-            int tokenIdx = query.indexOf("token=");
-            token = query.substring(tokenIdx + 7);
-            int endIdx = token.indexOf("&");
-            if (endIdx == -1) endIdx = token.length();
-            token = token.substring(0, endIdx);
+            token = query.split("token=")[1].split("&")[0];
         } catch (Exception e) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return false;
@@ -57,7 +53,8 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
         String path = request.getURI().getPath();
         String[] segments = path.split("/");
-        UUID chatId = UUID.fromString(segments[segments.length - 1]);
+        String lastPath = segments[segments.length - 1].split("\\?")[0];
+        UUID chatId = UUID.fromString(lastPath);
         attributes.put("chatId", chatId);
         if (chatRepo.getChatById(chatId) == null)
             return false;
