@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/chats")
+@RequestMapping("/api/v1/chats")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "BearerAuth")
 public class ChatController {
