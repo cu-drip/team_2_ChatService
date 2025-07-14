@@ -36,7 +36,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             int tokenIdx = query.indexOf("token=");
             token = query.substring(tokenIdx + 7);
             int endIdx = token.indexOf("&");
-            if (endIdx != -1) endIdx = token.length();
+            if (endIdx == -1) endIdx = token.length();
             token = token.substring(0, endIdx);
         } catch (Exception e) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
